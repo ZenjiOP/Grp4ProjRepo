@@ -192,7 +192,7 @@ bool ofAKind(vector<string> hand){
     for (int i = 0; i < 7; i++){cout << tempHandArr[i] << " ";}
     cout << "\n";
 
-    unordered_map<int, size_t> count;  // holds count of each encountered number 
+    unordered_map<int, size_t> count;  // holds count of each encountered number.  Very likely a way to do this without using unordered map.
     for (int i=0; i<7; i++){count[tempHandArr[i]]++;}  
 
     cout << count.size() << endl;
