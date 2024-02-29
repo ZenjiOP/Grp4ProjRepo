@@ -46,7 +46,7 @@ class deckOfCards{
 };
 
 // Card Sprite Creation, to Render Cards this will likely need to be adjusted
-string createCardSprite(string cardInfo){
+string createCardSprite(vector<string> handInfo){
     // replace 1,1 and 5,6
     // 10 index problem fix
     string cardBases[4][6] = {
@@ -76,20 +76,25 @@ string createCardSprite(string cardInfo){
         {"|____A|"}}
     };
     
+
     string cardSprite = "", cardSuitIndex = "SDCH";
-    string cardValue = ""; cardValue.push_back(cardInfo[0]);
-    char cardSuit = cardInfo[1];
     int cardBaseIndex;
-    cardBaseIndex = cardSuitIndex.find(cardSuit);
 
     //if (cardValue == "T") {cardValue = "10";}
 
-    for (int i = 0; i < 6; i++){
-        string cardLine = cardBases[cardBaseIndex][i];
-        if (i == 1 | i == 5) {cardLine.replace(i, 1, cardValue);}
-        cardSprite.append(cardLine);
+    cardSprite += "\n";
+    for (int i = 0; i < 6; i++){ // each line
+        for (int j = 0; j < handInfo.size(); j++){ // each card
+            char cardSuit = handInfo[j][1];
+            string cardValue = ""; cardValue.push_back(handInfo[j][0]);
+            cardBaseIndex = cardSuitIndex.find(cardSuit);
+
+            string cardLine = cardBases[cardBaseIndex][i];
+            if (i == 1 | i == 5) {cardLine.replace(i, 1, cardValue);}
+            cardSprite.append(cardLine);
+        }  
         cardSprite += "\n";
-    }   
+    }  
 
     return cardSprite;
 }
@@ -223,20 +228,17 @@ void playGame(){
     deck1.populateDeck();
 
     deck1.printDeck();
-    cout << "Drawing 5 cards\n";
-    for (int i = 0; i < 5; i++){
+    vector<string> testHand = {};
+    cout << "Drawing 7 cards\n";
+    for (int i = 0; i < 7; i++){
         auto card = deck1.drawCard();
         cout << card << "\n";
-        cout << createCardSprite(card) << "\n";
+        testHand.push_back(card);
     }
-    cout << "\n";
     deck1.printDeck();
 
-    cout << createCardSprite("TS") << "\n";
-
-    // testing flush detection with 7 cards.
-    vector<string> testHand = {"4D","4H","5D","4C","5S","5H","7C"};
     cout << "Test Hand Vector: ";
+    cout << createCardSprite(testHand);
 
     for (auto x : testHand) 
         cout << x << " "; 
