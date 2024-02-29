@@ -108,6 +108,36 @@ void clearScreen(int numOfLines){
     cout << "\x1b[2K"; // delete current line
 }
 
+// Construct ascii screen to display, needs to be passed info to display.
+void createScreen(vector<string> playerHand, vector<string> communityCards, int screenFlag){
+    /*Screen Flag Atlas:
+    1 - Main Menu
+    2 - In Game*/ 
+    if (screenFlag == 2) {
+        cout << "CPU:" << endl;
+        string cpuHand = " __  __\n|//||//|\n|__||__|";
+        cout << cpuHand << endl;
+
+        string spacer = "\n\n\n";
+        cout << spacer;
+
+        //community cards
+        cout << "Pot Total: " << endl; // add pot total variable
+        cout << createCardSprite(communityCards);
+        cout << spacer;
+
+        //player hand
+        cout << "Your Hand:" << endl;
+        cout << createCardSprite(playerHand) << "\n";
+        //player chips
+        cout << "____________________\n";
+        cout << "Your Chips: " << "999,999" << " |\n"; // add player chips total variable
+
+        cout << "You Can: " << "Check, Call, Raise, or Fold.\n";
+        cout << "What Will You Do? "; // return string for player input
+    }
+}
+
 //Poker Logic, each function takes a vector of Strings in format "SV" (Suit/Value)
 //Flush - remove card values, check if all suits are the same.  Save highest number for tiebreaking.
 bool isFlush(vector<string> hand){
