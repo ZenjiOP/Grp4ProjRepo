@@ -13,8 +13,8 @@ class deckOfCards{
         const string suits = "HCSD", faceCards = "TJQKA"; // T = 10, included for formatting later
         vector<string> deck;
     public:
+	// populate deck with cards, CALL FIRST BEFORE ANYTHING ELSE
         void populateDeck(){
-            // populate deck with cards
             for (int i = 0; i < 4; i++){
                 for (int j = 2; j < 10; j++){
                     deck.push_back(to_string(j) + suits[i]);
@@ -31,6 +31,7 @@ class deckOfCards{
             shuffle(begin(deck), end(deck), rng);
         }
 
+        // returns a 2 character string in format "AS" (AceSpades / ValueSuit)
         string drawCard(){
             string drawnCard = deck.back();
             deck.pop_back();
@@ -45,10 +46,8 @@ class deckOfCards{
         }
 };
 
-// Card Sprite Creation, to Render Cards this will likely need to be adjusted
+// Card Sprite Creation
 string createCardSprite(vector<string> handInfo){
-    // replace 1,1 and 5,6
-    // 10 index problem fix
     string cardBases[4][6] = {
         {{" _____ "},
         {"|A .  |"},
@@ -80,8 +79,6 @@ string createCardSprite(vector<string> handInfo){
     string cardSprite = "", cardSuitIndex = "SDCH";
     int cardBaseIndex;
 
-    //if (cardValue == "T") {cardValue = "10";}
-
     cardSprite += "\n";
     for (int i = 0; i < 6; i++){ // each line
         for (int j = 0; j < handInfo.size(); j++){ // each card
@@ -108,7 +105,6 @@ void clearScreen(int numOfLines){
     cout << "\x1b[2K"; // delete current line
 }
 
-// Construct ascii screen to display, needs to be passed info to display.
 void createScreen(vector<string> playerHand, vector<string> communityCards, int screenFlag){
     /*Screen Flag Atlas:
     1 - Main Menu
@@ -139,7 +135,8 @@ void createScreen(vector<string> playerHand, vector<string> communityCards, int 
 }
 
 //Poker Logic, each function takes a vector of Strings in format "SV" (Suit/Value)
-//Flush - remove card values, check if all suits are the same.  Save highest number for tiebreaking.
+//Flush - remove card values, check if all suits are the same.  TODO: Save highest number for tiebreaking.
+//Takes a vector<string> of community cards + one player hand and returns true if a straight is found.
 bool isFlush(vector<string> hand){
     // reverse value and suit
     string tempHandArr[7];
@@ -166,7 +163,8 @@ bool isFlush(vector<string> hand){
     return false;
 }
 
-//Straight - iterate through the hand if (hand[i+1] == hand[i]-1). Save highest number in straight for tiebreaking.
+//Straight - iterate through the hand if (hand[i+1] == hand[i]-1). TODO: Save highest number in straight for tiebreaking.
+//Takes a vector<string> of community cards + one player hand and returns true if a straight is found.
 bool isStraight(vector<string> hand){
     int tempHandArr[7];
 
@@ -204,7 +202,8 @@ bool isStraight(vector<string> hand){
     return false;
 }
 
-//Of a Kind - iterate through hand if (hand[i] == hand[i+1]).  Check for 3 and 4 of a Kind.  Save Pair value for tiebreaking.
+//Of a Kind - iterate through hand if (hand[i] == hand[i+1]).  Check for 3 and 4 of a Kind.  TODO: Save Pair value for tiebreaking.
+//Takes a vector<string> of community cards + one player hand and returns true if a match is found
 bool ofAKind(vector<string> hand){
     int tempHandArr[7];
 
@@ -276,6 +275,11 @@ void playGame(){
     cout << isFlush(testHand);
     cout << isStraight(testHand);
     cout << ofAKind(testHand);
+
+    //testing createScreen
+    vector<string> testPlayerHand = {"AS", "AH"};
+    vector<string> testCommunityCards = {"5H", "6C", "5S", "KC", "4D"}; 
+    createScreen(testPlayerHand, testCommunityCards, 2);
 }
 
 int main(){
