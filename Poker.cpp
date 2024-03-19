@@ -13,8 +13,8 @@ class deckOfCards{
         const string suits = "HCSD", faceCards = "TJQKA"; // T = 10, included for formatting later
         vector<string> deck;
     public:
-	// populate deck with cards, CALL FIRST BEFORE ANYTHING ELSE
         void populateDeck(){
+            // populate deck with cards, CALL FIRST
             for (int i = 0; i < 4; i++){
                 for (int j = 2; j < 10; j++){
                     deck.push_back(to_string(j) + suits[i]);
@@ -109,6 +109,17 @@ void createScreen(vector<string> playerHand, vector<string> communityCards, int 
     /*Screen Flag Atlas:
     1 - Main Menu
     2 - In Game*/ 
+
+    if (screenFlag == 1) {
+        cout << "\n\n";
+        // title
+        cout << "$$$$$$$\\            $$\\                TWO CARD\n$$  __$$\\           $$ |\n$$ |  $$ | $$$$$$\\  $$ |  $$\\  $$$$$$\\"   
+            << "   $$$$$$\\ \n$$$$$$$  |$$  __$$\\ $$ | $$  |$$  __$$\\ $$  __$$\\ \n$$  ____/ $$ /  $$ |$$$$$$  / $$$$$$$$ |$$ |  \\__|\n"
+            << "$$ |      $$ |  $$ |$$  _$$<  $$   ____|$$ |\n$$ |      \\$$$$$$  |$$ | \\$$\\ \\$$$$$$$\\ $$ |\n\\__|       \\______/ \\"
+            << "__|  \\__| \\_______|\\__|" << endl;
+        cout << "\n                     GROUP 4\n\n		 1. START GAME\n		 2. SETTINGS\n		 3. QUIT\n\n\n\nENTER CHOICE: ";
+    }
+
     if (screenFlag == 2) {
         cout << "CPU:" << endl;
         string cpuHand = " __  __\n|//||//|\n|__||__|";
@@ -134,8 +145,16 @@ void createScreen(vector<string> playerHand, vector<string> communityCards, int 
     }
 }
 
+string getPlayerInput(){
+    string playerInput;
+    cin >> playerInput;
+    // Based on input call functions or pass input to driver function
+
+    return playerInput;
+}
+
 //Poker Logic, each function takes a vector of Strings in format "SV" (Suit/Value)
-//Flush - remove card values, check if all suits are the same.  TODO: Save highest number for tiebreaking.
+//Flush - remove card values, check if 5 suits are the same.  TODO: Save highest number for tiebreaking.
 //Takes a vector<string> of community cards + one player hand and returns true if a straight is found.
 bool isFlush(vector<string> hand){
     // reverse value and suit
@@ -145,13 +164,10 @@ bool isFlush(vector<string> hand){
     }
     // sort
     sort(begin(tempHandArr), end(tempHandArr));
-    cout << "\nsorted: ";
-    for (int i = 0; i < 7; i++){cout << tempHandArr[i] << " ";}
-    cout << "\n";
+
     // check
     int flushCount = 0;
     for (int i = 0; i <=5; i++){
-        cout << tempHandArr[i] << " " << tempHandArr[i+1] << " | " << flushCount << "\n";
         if (tempHandArr[i] == tempHandArr[i+1]){
             flushCount++;
             if (flushCount == 4){ return true; }
@@ -165,46 +181,51 @@ bool isFlush(vector<string> hand){
 
 //Straight - iterate through the hand if (hand[i+1] == hand[i]-1). TODO: Save highest number in straight for tiebreaking.
 //Takes a vector<string> of community cards + one player hand and returns true if a straight is found.
-bool isStraight(vector<string> hand){
+int isStraight(vector<string> hand){
     int tempHandArr[7];
 
     // convert to ints and handle face cards
     char cArr[5] = {'T','J','Q','K','A'};
-	string sArr[5] = {"10","11","12","13","14"};
+	int sArr[5] = {10, 11, 12, 13, 14};
     
     for (int i = 0; i < hand.size(); i++) {
         tempHandArr[i] = hand[i][0] - '0';
         for (int j = 0; j < 5; j++) {
             if (hand[i][0] == cArr[j]) {
-                tempHandArr[i] = stoi(sArr[j]);
+                tempHandArr[i] = sArr[j];
             }
         }
     }
     
     //sort
     sort(begin(tempHandArr), end(tempHandArr));
-    cout << "\nsorted: ";
-    for (int i = 0; i < 7; i++){cout << tempHandArr[i] << " ";}
-    cout << "\n";
-    
+
     //compare
-    int straightCount = 0;
+    int straightCount = 0, royalStraightCount = 0, j = 0;
     for (int i = 0; i <=5; i++){
-        cout << tempHandArr[i] << " " << tempHandArr[i+1] << " | " << straightCount << "\n";
-        if (tempHandArr[i] == tempHandArr[i+1]-1){
-            straightCount++;
-            if (straightCount == 4){ return true; }
+        // 2 if royal straight
+        if (tempHandArr[i] == sArr[j]){
+            j++;
+            royalStraightCount++;
+            if (royalStraightCount == 4){ return 2; }
         }
+        // 1 if normal straight
+        else if (tempHandArr[i] == tempHandArr[i+1]-1){
+            straightCount++;
+            if (straightCount == 4){ return 1; }
+        }
+        // 0 if none
         else {
             straightCount = 0;
         }
     }
-    return false;
+    return 0;
 }
 
 //Of a Kind - iterate through hand if (hand[i] == hand[i+1]).  Check for 3 and 4 of a Kind.  TODO: Save Pair value for tiebreaking.
 //Takes a vector<string> of community cards + one player hand and returns true if a match is found
-bool ofAKind(vector<string> hand){
+int ofAKind(vector<string> hand){
+    // 1 - Pair, 2 - Two Pair, 3 - Three of a Kind, 4 - Four of a Kind
     int tempHandArr[7];
 
     // convert to ints and handle face cards
@@ -222,33 +243,83 @@ bool ofAKind(vector<string> hand){
 
     //sort
     sort(begin(tempHandArr), end(tempHandArr));
-    cout << "\nsorted: ";
-    for (int i = 0; i < 7; i++){cout << tempHandArr[i] << " ";}
-    cout << "\n";
 
-    unordered_map<int, size_t> count;  // holds count of each encountered number.  Very likely a way to do this without using unordered map.
+    unordered_map<int, size_t> count;  // holds count of each encountered number.
     for (int i=0; i<7; i++){count[tempHandArr[i]]++;}  
 
-    cout << count.size() << endl;
-    int twoPair = 0, threePair = 0;
+    int pair = 0, threePair = 0, fourPair = 0;
 
     for (auto i : count) {
         if (i.second == 2) {
-            twoPair++;
+            pair++;
         }
         if (i.second == 3){
             threePair++;
         }
+        if (i.second == 4){
+            return 4;
+        }
     }
 
-    if (twoPair != 0 | threePair != 0){
-        cout << "\nTwo of a Kind: " << twoPair;
-        cout << "\nThree of a Kind: " << threePair;
-        cout << "\n";
-        return true;
+    if (pair == 1 && threePair == 1){
+        return 5;
+    }
+    else if (pair == 1){
+        return 1;
+    }
+    else if (pair > 1){
+        return 2;
+    }
+    else if (threePair == 1){
+        return 3;
+    }
+    else if (pair == 1 && threePair == 1){
+        return 5;
     }
 
     return false;
+}
+
+int rankHand(vector<string> hand){
+    // 10:Royal Flush, 9:Straight Flush, 8:Four Of A Kind, 7:Full House, 6:Flush, 5:Straight, 4:Three of a Kind, 
+        //3:Two Pair, 2:Pair, 1:High Card
+    
+    // Call Each Eval
+    bool flush = isFlush(hand);
+    int straight = isStraight(hand);
+    int pairs = ofAKind(hand);
+
+    if (flush){
+        // royal
+        if (straight == 2){
+            return 10;
+        }
+        // straight
+        if (straight == 1){
+            return 9;
+        }
+        // flush
+        return 6;
+    }
+    else if (straight != 0){
+        // straight
+        return 5;
+    }
+    switch (pairs){
+        case 1:
+            return 2;
+        case 2:
+            return 3;
+        case 3:
+            return 4;
+        case 4:
+            return 8;
+        case 5:
+            return 7;
+    }
+
+    // high card
+    return 1;
 }
 
 //Template play game function for testing.  Calls functions.  Should handle game operation.
@@ -256,30 +327,36 @@ void playGame(){
     deckOfCards deck1;
     deck1.populateDeck();
 
-    deck1.printDeck();
     vector<string> testHand = {};
+    // for game evaluations, simply add both the player hand vector and the community cards vector together then pass to eval functions
     cout << "Drawing 7 cards\n";
     for (int i = 0; i < 7; i++){
         auto card = deck1.drawCard();
-        cout << card << "\n";
         testHand.push_back(card);
     }
-    deck1.printDeck();
 
     cout << "Test Hand Vector: ";
     cout << createCardSprite(testHand);
 
+    vector<string> testHand2 = {"4D", "2C", "8S", "AD", "TD", "6C", "3S"};
+
     for (auto x : testHand) 
         cout << x << " "; 
 
-    cout << isFlush(testHand);
-    cout << isStraight(testHand);
-    cout << ofAKind(testHand);
+    cout << "\nFlush:" << isFlush(testHand);
+    cout << "\nStraight:" << isStraight(testHand);
+    cout << "\nOf A Kind:" << ofAKind(testHand) << endl;
+    cout << "Hand Ranking: " << rankHand(testHand) << endl;
 
     //testing createScreen
     vector<string> testPlayerHand = {"AS", "AH"};
     vector<string> testCommunityCards = {"5H", "6C", "5S", "KC", "4D"}; 
-    createScreen(testPlayerHand, testCommunityCards, 2);
+    createScreen(testPlayerHand, testCommunityCards, 1);
+    
+}
+
+int main(){
+    playGame();
 }
 
 int main(){
