@@ -4,6 +4,8 @@
 #include "random"
 #include "string"
 #include "unordered_map"
+#include "PokerLogic.cpp"
+#include "Graphics.cpp"
 
 using namespace std;
 
@@ -33,6 +35,9 @@ class deckOfCards{
 
         // returns a 2 character string in format "AS" (AceSpades / ValueSuit)
         string drawCard(){
+            if (deck.size() == 0){
+                populateDeck();
+            }
             string drawnCard = deck.back();
             deck.pop_back();
             return drawnCard;
@@ -46,284 +51,105 @@ class deckOfCards{
         }
 };
 
-// Card Sprite Creation
-string createCardSprite(vector<string> handInfo){
-    string cardBases[4][6] = {
-        {{" _____ "},
-        {"|A .  |"},
-        {"| /.\\ |"},
-        {"|(_._)|"},
-        {"|  |  |"},
-        {"|____A|"}},
-        {{" _____ "},
-        {"|A .  |"},
-        {"| / \\ |"},
-        {"| \\ / |"},
-        {"|  v  |"},
-        {"|____A|"}},
-        {{" _____ "},
-        {"|A _  |"},
-        {"| ( ) |"},
-        {"|(_'_)|"},
-        {"|  |  |"},
-        {"|____A|"}},
-        {{" _____ "},
-        {"|A_ _ |"},
-        {"|( v )|"},
-        {"| \\ / |"},
-        {"|  v  |"},
-        {"|____A|"}}
-    };
-    
+class cpuOpponent{
+    private:
+        // action probability weights.  1 - Check/Call, 2 - Raise, 3 - Fold
+        // action response takes player's last input as a param in addition to hand rank
+        short pwLowRank[10] = {1,1,1,1,1,1,1,3,3,3};
+        short pwMidRank[10] = {1,1,1,1,1,1,2,2,2,3};
+        short pwHighRank[10] = {1,1,1,2,2,2,2,2,2,2};
 
-    string cardSprite = "", cardSuitIndex = "SDCH";
-    int cardBaseIndex;
+        short pwLowRankRaised[10] = {1,1,1,3,3,3,3,3,3,3};
+        short pwMidRankRaised[10] = {1,1,1,1,1,1,2,3,3,3};
+        short pwHighRankRaised[10] = {1,1,1,2,2,2,2,2,2,3};
+        
+        int chips;
 
-    cardSprite += "\n";
-    for (int i = 0; i < 6; i++){ // each line
-        for (int j = 0; j < handInfo.size(); j++){ // each card
-            char cardSuit = handInfo[j][1];
-            string cardValue = ""; cardValue.push_back(handInfo[j][0]);
-            cardBaseIndex = cardSuitIndex.find(cardSuit);
+        vector<string> hand = {};
 
-            string cardLine = cardBases[cardBaseIndex][i];
-            if (i == 1 | i == 5) {cardLine.replace(i, 1, cardValue);}
-            cardSprite.append(cardLine);
-        }  
-        cardSprite += "\n";
-    }  
+        // a random number for aggressiveness in constructor?
+    public:
+        // ex. cpuActionTaken = cpu1.chooseAction(rankHand(cpuHand + communityCards), playerInput);
+        string chooseAction(int handRanking, string lastPlayerAction){
+            short actionChosen;
 
-    return cardSprite;
-}
-
-// clears screen, for display later.
-void clearScreen(int numOfLines){
-    for (int i = 0; i < numOfLines; i++){
-        // VT100 Escape Codes: "[2k":Clear line "[A":Move up a line
-        cout << "\33[2K\r\033[A"; // delete line, move up a line
-    }
-    cout << "\x1b[2K"; // delete current line
-}
-
-void createScreen(vector<string> playerHand, vector<string> communityCards, int screenFlag){
-    /*Screen Flag Atlas:
-    1 - Main Menu
-    2 - In Game*/ 
-
-    if (screenFlag == 1) {
-        cout << "\n\n";
-        // title
-        cout << "$$$$$$$\\            $$\\                TWO CARD\n$$  __$$\\           $$ |\n$$ |  $$ | $$$$$$\\  $$ |  $$\\  $$$$$$\\"   
-            << "   $$$$$$\\ \n$$$$$$$  |$$  __$$\\ $$ | $$  |$$  __$$\\ $$  __$$\\ \n$$  ____/ $$ /  $$ |$$$$$$  / $$$$$$$$ |$$ |  \\__|\n"
-            << "$$ |      $$ |  $$ |$$  _$$<  $$   ____|$$ |\n$$ |      \\$$$$$$  |$$ | \\$$\\ \\$$$$$$$\\ $$ |\n\\__|       \\______/ \\"
-            << "__|  \\__| \\_______|\\__|" << endl;
-        cout << "\n                     GROUP 4\n\n		 1. START GAME\n		 2. SETTINGS\n		 3. QUIT\n\n\n\nENTER CHOICE: ";
-    }
-
-    if (screenFlag == 2) {
-        cout << "CPU:" << endl;
-        string cpuHand = " __  __\n|//||//|\n|__||__|";
-        cout << cpuHand << endl;
-
-        string spacer = "\n\n\n";
-        cout << spacer;
-
-        //community cards
-        cout << "Pot Total: " << endl; // add pot total variable
-        cout << createCardSprite(communityCards);
-        cout << spacer;
-
-        //player hand
-        cout << "Your Hand:" << endl;
-        cout << createCardSprite(playerHand) << "\n";
-        //player chips
-        cout << "____________________\n";
-        cout << "Your Chips: " << "999,999" << " |\n"; // add player chips total variable
-
-        cout << "You Can: " << "Check, Call, Raise, or Fold.\n";
-        cout << "What Will You Do? "; // return string for player input
-    }
-}
-
-string getPlayerInput(){
-    string playerInput;
-    cin >> playerInput;
-    // Based on input call functions or pass input to driver function
-
-    return playerInput;
-}
-
-//Poker Logic, each function takes a vector of Strings in format "SV" (Suit/Value)
-//Flush - remove card values, check if 5 suits are the same.  TODO: Save highest number for tiebreaking.
-//Takes a vector<string> of community cards + one player hand and returns true if a straight is found.
-bool isFlush(vector<string> hand){
-    // reverse value and suit
-    string tempHandArr[7];
-    for (int i = 0; i < hand.size(); i++){
-        tempHandArr[i] = hand[i][1];
-    }
-    // sort
-    sort(begin(tempHandArr), end(tempHandArr));
-
-    // check
-    int flushCount = 0;
-    for (int i = 0; i <=5; i++){
-        if (tempHandArr[i] == tempHandArr[i+1]){
-            flushCount++;
-            if (flushCount == 4){ return true; }
-        }
-        else {
-            flushCount = 0;
-        }
-    }
-    return false;
-}
-
-//Straight - iterate through the hand if (hand[i+1] == hand[i]-1). TODO: Save highest number in straight for tiebreaking.
-//Takes a vector<string> of community cards + one player hand and returns true if a straight is found.
-int isStraight(vector<string> hand){
-    int tempHandArr[7];
-
-    // convert to ints and handle face cards
-    char cArr[5] = {'T','J','Q','K','A'};
-	int sArr[5] = {10, 11, 12, 13, 14};
-    
-    for (int i = 0; i < hand.size(); i++) {
-        tempHandArr[i] = hand[i][0] - '0';
-        for (int j = 0; j < 5; j++) {
-            if (hand[i][0] == cArr[j]) {
-                tempHandArr[i] = sArr[j];
+            if (lastPlayerAction == "raise"){
+                if (handRanking < 3){
+                    int random = rand() % 10;
+                    actionChosen = pwLowRankRaised[random];
+                }
+                else if (handRanking >= 3 && handRanking <= 6){
+                    int random = rand() % 10;
+                    actionChosen = pwMidRankRaised[random];
+                }
+                else if (handRanking > 6){
+                    int random = rand() % 10;
+                    actionChosen = pwHighRankRaised[random];
+                }
             }
-        }
-    }
-    
-    //sort
-    sort(begin(tempHandArr), end(tempHandArr));
-
-    //compare
-    int straightCount = 0, royalStraightCount = 0, j = 0;
-    for (int i = 0; i <=5; i++){
-        // 2 if royal straight
-        if (tempHandArr[i] == sArr[j]){
-            j++;
-            royalStraightCount++;
-            if (royalStraightCount == 4){ return 2; }
-        }
-        // 1 if normal straight
-        else if (tempHandArr[i] == tempHandArr[i+1]-1){
-            straightCount++;
-            if (straightCount == 4){ return 1; }
-        }
-        // 0 if none
-        else {
-            straightCount = 0;
-        }
-    }
-    return 0;
-}
-
-//Of a Kind - iterate through hand if (hand[i] == hand[i+1]).  Check for 3 and 4 of a Kind.  TODO: Save Pair value for tiebreaking.
-//Takes a vector<string> of community cards + one player hand and returns true if a match is found
-int ofAKind(vector<string> hand){
-    // 1 - Pair, 2 - Two Pair, 3 - Three of a Kind, 4 - Four of a Kind
-    int tempHandArr[7];
-
-    // convert to ints and handle face cards
-    char cArr[5] = {'T','J','Q','K','A'};
-	string sArr[5] = {"10","11","12","13","14"};
-    
-    for (int i = 0; i < hand.size(); i++) {
-        tempHandArr[i] = hand[i][0] - '0';
-        for (int j = 0; j < 5; j++) {
-            if (hand[i][0] == cArr[j]) {
-                tempHandArr[i] = stoi(sArr[j]);
+            else {
+                if (handRanking < 3){
+                    int random = rand() % 10;
+                    actionChosen = pwLowRank[random];
+                }
+                else if (handRanking >= 3 && handRanking <= 6){
+                    int random = rand() % 10;
+                    actionChosen = pwMidRank[random];
+                }
+                else if (handRanking > 6){
+                    int random = rand() % 10;
+                    actionChosen = pwHighRank[random];
+                }
             }
+
+            switch (actionChosen){
+                case 1:
+                    return "call";
+                case 2:
+                    return "raise";
+                case 3:
+                    return "fold";
+            }
+            return "NULL";
         }
-    }
-
-    //sort
-    sort(begin(tempHandArr), end(tempHandArr));
-
-    unordered_map<int, size_t> count;  // holds count of each encountered number.
-    for (int i=0; i<7; i++){count[tempHandArr[i]]++;}  
-
-    int pair = 0, threePair = 0, fourPair = 0;
-
-    for (auto i : count) {
-        if (i.second == 2) {
-            pair++;
+        void setHand(vector<string> newHand){
+            hand = newHand;
         }
-        if (i.second == 3){
-            threePair++;
+        vector<string> getHand(){
+            return hand;
         }
-        if (i.second == 4){
-            return 4;
+        void updateChipTotal(int newChipTotal){
+            chips = newChipTotal; 
         }
-    }
+        int getChipTotal(){
+            return chips;
+        }      
+};
 
-    if (pair == 1 && threePair == 1){
-        return 5;
-    }
-    else if (pair == 1){
-        return 1;
-    }
-    else if (pair > 1){
-        return 2;
-    }
-    else if (threePair == 1){
-        return 3;
-    }
-    else if (pair == 1 && threePair == 1){
-        return 5;
-    }
-
-    return false;
-}
-
-int rankHand(vector<string> hand){
-    // 10:Royal Flush, 9:Straight Flush, 8:Four Of A Kind, 7:Full House, 6:Flush, 5:Straight, 4:Three of a Kind, 
-        //3:Two Pair, 2:Pair, 1:High Card
-    
-    // Call Each Eval
-    bool flush = isFlush(hand);
-    int straight = isStraight(hand);
-    int pairs = ofAKind(hand);
-
-    if (flush){
-        // royal
-        if (straight == 2){
-            return 10;
+class player{
+    private:
+        vector<string> hand = {};
+        int chips;
+    public:
+        void setHand(vector<string> newHand){
+            hand = newHand;
         }
-        // straight
-        if (straight == 1){
-            return 9;
+        vector<string> getHand(){
+            return hand;
         }
-        // flush
-        return 6;
-    }
-    else if (straight != 0){
-        // straight
-        return 5;
-    }
-    switch (pairs){
-        case 1:
-            return 2;
-        case 2:
-            return 3;
-        case 3:
-            return 4;
-        case 4:
-            return 8;
-        case 5:
-            return 7;
-    }
+        void updateChips(int newTotal){
+            chips = newTotal;
+        }
+        int getChips(){
+            return chips;
+        }
+};
 
-    // high card
-    return 1;
-}
 
 //Template play game function for testing.  Calls functions.  Should handle game operation.
 void playGame(){
+    srand((unsigned) time(NULL));
+
     deckOfCards deck1;
     deck1.populateDeck();
 
@@ -352,11 +178,6 @@ void playGame(){
     vector<string> testPlayerHand = {"AS", "AH"};
     vector<string> testCommunityCards = {"5H", "6C", "5S", "KC", "4D"}; 
     createScreen(testPlayerHand, testCommunityCards, 1);
-    
-}
-
-int main(){
-    playGame();
 }
 
 int main(){
