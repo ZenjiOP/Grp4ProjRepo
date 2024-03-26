@@ -3,6 +3,8 @@
 #include "algorithm"
 #include "random"
 #include "string"
+#include "chrono"
+#include "thread"
 #include "unordered_map"
 #include "PokerLogic.cpp"
 
@@ -213,7 +215,7 @@ void clearScreen(int numOfLines){
     cout << "\x1b[2K"; // delete current line
 }
 
-void createScreen(player player, vector<cpuOpponent> cpuInPlay, vector<string> communityCards, int screenFlag){
+void createScreen(player player, vector<cpuOpponent*> cpuInPlay, vector<string> communityCards, int screenFlag){
     /*Screen Flag Atlas:
     1 - Main Menu
     2 - In Game
@@ -250,7 +252,7 @@ void createScreen(player player, vector<cpuOpponent> cpuInPlay, vector<string> c
 
         cout << "\n\n";
         for (int i = 0; i < numOfCpu; i++){
-                cout << "CPU" << i + 1 <<": " << cpuInPlay[i].getChipTotal() << " - " << cpuInPlay[i].getLastActionTaken() << endl; // previous action;
+                cout << "CPU" << i + 1 <<": " << cpuInPlay[i]->getChipTotal() << " - " << cpuInPlay[i]->getLastActionTaken() << endl; // previous action;
         }
         cout << "\n";
 
@@ -279,7 +281,7 @@ string getPlayerInput(){
     return playerInput;
 }
 
-vector<int> roundOfBetting(player player1, vector<cpuOpponent> cpusInPlay, vector<int> bets, vector<string> communityCards, int pot){
+vector<int> roundOfBetting(player player1, vector<cpuOpponent*> cpusInPlay, vector<int> bets, vector<string> communityCards, int pot){
     // -9999 return = player folds
     bool playerOk = true;
     bool cpuOk = true;
@@ -321,15 +323,19 @@ vector<int> roundOfBetting(player player1, vector<cpuOpponent> cpusInPlay, vecto
                 bets[0] = -99999;
             }
         }
+        cout << "\nplayer chips: " << player1.getChipTotal();
 
         for (int i = 0; i < cpusInPlay.size(); i++){
             if (bets[i+1] != -99999){
-                vector<string> cpuhand = cpusInPlay[i].getHand();
+                vector<string> cpuhand = cpusInPlay[i]->getHand();
                 cpuhand.insert(cpuhand.end(), communityCards.begin(), communityCards.end());
 
                 int cpuhandRank = rankHand(cpuhand);
                 cout << "\ncpu" << i+1 << " has hand ranking " << cpuhandRank;
-                string cpuAction = cpusInPlay[i].chooseAction(cpuhandRank, playerAction);
+                string cpuAction = cpusInPlay[i]->chooseAction(cpuhandRank, playerAction);
+
+                //std::this_thread::sleep_for(std::chrono::seconds(1));
+
                 if (cpuAction == "raise"){
                     cout << "\ncpu" << i+1 << " raises";
                     int random = rand() % 500;
@@ -337,14 +343,14 @@ vector<int> roundOfBetting(player player1, vector<cpuOpponent> cpusInPlay, vecto
 
                     cout << "\nbet value is " << bet;
                     // if bet is above total chips, all in.
-                    if (bet > cpusInPlay[i].getChipTotal()){
-                        bet = cpusInPlay[i].getChipTotal();
+                    if (bet > cpusInPlay[i]->getChipTotal()){
+                        bet = cpusInPlay[i]->getChipTotal();
                         cout << "\ncpu is all in.  Value is " << bet;
                     }
 
-                    cpusInPlay[i].updateChipTotal(cpusInPlay[i].getChipTotal() - bet);
+                    cpusInPlay[i]->updateChipTotal(cpusInPlay[i]->getChipTotal() - bet);
                     bets[i+1] = bet;
-                    cout << "\ncpu" << i+1 << "'s chips remaining is " << cpusInPlay[i].getChipTotal();
+                    cout << "\ncpu" << i+1 << "'s chips remaining is " << cpusInPlay[i]->getChipTotal();
                 }
                 if (cpuAction == "call"){
                     cout << "\ncpu" << i+1 << " calls";
@@ -354,13 +360,14 @@ vector<int> roundOfBetting(player player1, vector<cpuOpponent> cpusInPlay, vecto
 
                     cout << "\nbets vector value is " << bets[i+1];
 
-                    cpusInPlay[i].updateChipTotal(cpusInPlay[i].getChipTotal() - (bets[i+1] - prevValue));
-                    cout << "\ncpu" << i+1 << "'s chips remaining is " << cpusInPlay[i].getChipTotal();
+                    cpusInPlay[i]->updateChipTotal(cpusInPlay[i]->getChipTotal() - (bets[i+1] - prevValue));
+                    cout << "\ncpu" << i+1 << "'s chips remaining is " << cpusInPlay[i]->getChipTotal();
                 }
                 if (cpuAction == "fold"){
                     cout << "\ncpu" << i+1 << " folds";
                     bets[i+1] = -99999;
                 }
+
             }
         }
 
@@ -386,24 +393,28 @@ int runHand(){
     player p1;
     cpuOpponent cpu1, cpu2, cpu3;
 
+    cpuOpponent* cpu1ptr = &cpu1;
+    cpuOpponent* cpu2ptr = &cpu2;
+    cpuOpponent* cpu3ptr = &cpu3;
+    
     // Settings Variables
     int numOfCpu = 1; // 1 = 3 CPU , 2 = 2 CPU , 3 = 1 CPU
     int startingChips = 10000; 
 
     // create vector holding all CPU in play
-    vector<cpuOpponent> cpuInPlay = {};
+    vector<cpuOpponent*> cpuInPlay = {};
     switch (numOfCpu){
         case 1:
-            cpuInPlay.push_back(cpu3);
+            cpuInPlay.push_back(cpu3ptr);
         case 2:
-            cpuInPlay.push_back(cpu2);
+            cpuInPlay.push_back(cpu2ptr);
         case 3:
-            cpuInPlay.push_back(cpu1);
+            cpuInPlay.push_back(cpu1ptr);
     }
 
     // update chips
     for (int i = 0; i < cpuInPlay.size(); i++){
-        cpuInPlay[i].updateChipTotal(startingChips);
+        cpuInPlay[i]->updateChipTotal(startingChips);
     }
     p1.updateChipTotal(startingChips);
 
@@ -433,11 +444,11 @@ int runHand(){
     
     switch (numOfCpu){
         case 1: // 3 cpu
-            cpuInPlay[2].setHand(cpu3Hand); 
+            cpuInPlay[2]->setHand(cpu3Hand); 
         case 2: // 2 cpu
-            cpuInPlay[1].setHand(cpu2Hand);
+            cpuInPlay[1]->setHand(cpu2Hand);
         case 3: // 1 cpu
-            cpuInPlay[0].setHand(cpu1Hand);
+            cpuInPlay[0]->setHand(cpu1Hand);
     }
     
     vector<int> bets = {0};
@@ -449,7 +460,7 @@ int runHand(){
 
     for (int i = 0; i < cpuInPlay.size(); i++){
         cout << i + 1 << ": ";
-        for (auto x: cpuInPlay[i].getHand()){
+        for (auto x: cpuInPlay[i]->getHand()){
             cout << x << " ";
         }
         cout << endl;
