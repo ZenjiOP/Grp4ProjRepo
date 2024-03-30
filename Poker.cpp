@@ -281,11 +281,8 @@ string getPlayerInput(){
     return playerInput;
 }
 
-vector<int> roundOfBetting(player player1, vector<cpuOpponent*> cpusInPlay, vector<int> bets, vector<string> communityCards, int pot){
-    // -9999 return = player folds
-    bool playerOk = true;
-    bool cpuOk = true;
-    int flag = 1;
+vector<int> roundOfBetting(player *player1, vector<cpuOpponent*> cpusInPlay, vector<int> bets, vector<string> communityCards, int pot){
+    // -99999 return = player folds
     string playerAction = "check"; 
 
     cout << bets.size();
@@ -300,30 +297,30 @@ vector<int> roundOfBetting(player player1, vector<cpuOpponent*> cpusInPlay, vect
             if (playerAction == "raise"){
                 int bet = stoi(getPlayerInput());
                 
-                if (bet > player1.getChipTotal()){
+                if (bet > player1->getChipTotal()){
                     //cannot bet more chips than you have!  Go all in?
-                    bet = player1.getChipTotal();
+                    bet = player1->getChipTotal();
                 }
 
-                player1.updateChipTotal(player1.getChipTotal() - bet);
+                player1->updateChipTotal(player1->getChipTotal() - bet);
                 bets[0] = bet;
             }
             if (playerAction == "call"){
                 int prevValue = bets[0];
-                bets[0] = bets.back();
+                bets[0] = *max_element(begin(bets), end(bets));
 
-                player1.updateChipTotal(player1.getChipTotal() - (bets[0] - prevValue));
+                player1->updateChipTotal(player1->getChipTotal() - (bets[0] - prevValue));
             }
             if (playerAction == "check"){
                 if (bets.back() != 0){
-                    cout << "cannot check, did you mean Call?";
+                    cout << "cannot check, Calling.";
                 }
             }
             if (playerAction == "fold"){
                 bets[0] = -99999;
             }
         }
-        cout << "\nplayer chips: " << player1.getChipTotal();
+        cout << "\nplayer chips: " << player1->getChipTotal();
 
         for (int i = 0; i < cpusInPlay.size(); i++){
             if (bets[i+1] != -99999){
@@ -391,64 +388,48 @@ int runHand(){
     deck1.populateDeck();
     
     player p1;
-    cpuOpponent cpu1, cpu2, cpu3;
+    player* p1Ptr = &p1;
 
-    cpuOpponent* cpu1ptr = &cpu1;
-    cpuOpponent* cpu2ptr = &cpu2;
-    cpuOpponent* cpu3ptr = &cpu3;
-    
     // Settings Variables
-    int numOfCpu = 1; // 1 = 3 CPU , 2 = 2 CPU , 3 = 1 CPU
+    int numOfCpu = 3; // 1 = 3 CPU , 2 = 2 CPU , 3 = 1 CPU
     int startingChips = 10000; 
-
-    // create vector holding all CPU in play
-    vector<cpuOpponent*> cpuInPlay = {};
-    switch (numOfCpu){
-        case 1:
-            cpuInPlay.push_back(cpu3ptr);
-        case 2:
-            cpuInPlay.push_back(cpu2ptr);
-        case 3:
-            cpuInPlay.push_back(cpu1ptr);
-    }
-
-    // update chips
-    for (int i = 0; i < cpuInPlay.size(); i++){
-        cpuInPlay[i]->updateChipTotal(startingChips);
-    }
-    p1.updateChipTotal(startingChips);
 
     vector<string> communityCards = {};
     int pot = 0;
 
-    vector<string> playerHand = {};
-    vector<string> cpu1Hand = {};
-    vector<string> cpu2Hand = {};
-    vector<string> cpu3Hand = {};
+    // create vector holding all CPU in play, update chips
+    vector<cpuOpponent*> cpuInPlay = {};
+    cpuInPlay.resize(numOfCpu);
+
+    for (int i = 0; i < numOfCpu; i++){
+        cpuInPlay[i] = new cpuOpponent();
+        cpuInPlay[i]->updateChipTotal(startingChips);
+    }
+    p1.updateChipTotal(startingChips);
+    
+    // create a vector of vectors of strings containing hands
+    vector<vector<string>> hands(numOfCpu + 1);
 
     // deal cards    
     for (int i = 0; i < 2; i++){
-        playerHand.push_back(deck1.drawCard());
+        hands[0].push_back(deck1.drawCard());
         
-        switch (numOfCpu){
-            case 1: // 3 cpu
-                cpu3Hand.push_back(deck1.drawCard());
-            case 2: // 2 cpu
-                cpu2Hand.push_back(deck1.drawCard());
-            case 3: // 1 cpu
-                cpu1Hand.push_back(deck1.drawCard());
+        for (int j = 0; j < numOfCpu; j++){
+            hands[j+1].push_back(deck1.drawCard());
         }
     }
 
-    p1.setHand(playerHand);
+    cout << "hands: ";
+    for (auto x: hands){
+        cout << ":";
+        for (auto y: x)
+            cout << y << " ";
+    }
+
+    p1.setHand(hands[0]);
     
-    switch (numOfCpu){
-        case 1: // 3 cpu
-            cpuInPlay[2]->setHand(cpu3Hand); 
-        case 2: // 2 cpu
-            cpuInPlay[1]->setHand(cpu2Hand);
-        case 3: // 1 cpu
-            cpuInPlay[0]->setHand(cpu1Hand);
+    for (int i = 0; i < numOfCpu; i++){
+        cpuInPlay[i]->setHand(hands[i+1]);
     }
     
     vector<int> bets = {0};
@@ -472,16 +453,32 @@ int runHand(){
     }
 
     createScreen(p1, cpuInPlay, communityCards, 2);
-    bets = roundOfBetting(p1, cpuInPlay, bets, communityCards, pot);
+    bets = roundOfBetting(p1Ptr, cpuInPlay, bets, communityCards, pot);
+    bool roundOver = false;
 
-    communityCards.push_back(deck1.drawCard());
-    createScreen(p1, cpuInPlay, communityCards, 2);
-    bets = roundOfBetting(p1, cpuInPlay, bets, communityCards, pot);
+    if (count(bets.begin(), bets.end(), -99999) >= numOfCpu){
+        roundOver = true;
+    }
+    else if (!roundOver){
+        communityCards.push_back(deck1.drawCard());
+        createScreen(p1, cpuInPlay, communityCards, 2);
+        bets = roundOfBetting(p1Ptr, cpuInPlay, bets, communityCards, pot);
+    }
 
-    communityCards.push_back(deck1.drawCard());
-    createScreen(p1, cpuInPlay, communityCards, 2);
-    bets = roundOfBetting(p1, cpuInPlay, bets, communityCards, pot);
+    if (count(bets.begin(), bets.end(), -99999) >= numOfCpu){
+        roundOver = true;
+    }
+    else if (!roundOver){
+        communityCards.push_back(deck1.drawCard());
+        createScreen(p1, cpuInPlay, communityCards, 2);
+        bets = roundOfBetting(p1Ptr, cpuInPlay, bets, communityCards, pot);
+    }
+    cout << "Round Over";
 
+    // clean up memory, this should only be done upon game close
+    for (auto& cpu : cpuInPlay) {
+        delete cpu;
+    }
     return 0;
 }
 
