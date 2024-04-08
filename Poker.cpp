@@ -56,7 +56,7 @@ class cpuOpponent{
     private:
         // action probability weights.  1 - Check/Call, 2 - Raise, 3 - Fold
         // action response takes player's last input as a param in addition to hand rank
-        short pwLowRank[10] = {1,1,1,1,1,1,1,1,3,3};
+        short pwLowRank[10] = {1,1,1,1,1,1,1,1,1,3};
         short pwMidRank[10] = {1,1,1,1,1,1,2,2,2,3};
         short pwHighRank[10] = {1,1,1,2,2,2,2,2,2,2};
 
@@ -248,21 +248,10 @@ string createStringFromInt(int input){
 
 void createScreen(player *player, vector<cpuOpponent*> cpuInPlay, vector<string> communityCards, int screenFlag){
     /*Screen Flag Atlas:
-    1 - Main Menu
-    2 - In Game
-    3 - In Game, CPU Hand shown
+    1 - In Game
+    2 - In Game, CPU Hand shown
     */ 
-
-    if (screenFlag == 1) { // Title
-        cout << "\n\n";
-        cout << "				   TEXAS HOLD'EM\n\033[1;33m$$$$$$$\\            $$\\                \033[0mTWO CARD\033[1;33m\n$$  "
-            "__$$\\           $$ |\n$$ |  $$ | $$$$$$\\  $$ |  $$\\  $$$$$$\\   $$$$$$\\ \n$$$$$$$  |$$  __$$\\ $$ | $$  |$$  __$$\\ "
-            "$$  __$$\\ \n$$  ____/ $$ /  $$ |$$$$$$  / $$$$$$$$ |$$ |  \\__|\n$$ |      $$ |  $$ |$$  _$$<  $$   ____|$$ |\n$$ |   "
-            "   \\$$$$$$  |$$ | \\$$\\ \\$$$$$$$\\ $$ |\n\\__|       \\______/ \\__|  \\__| \\_______|\\__|\033[0m" << endl;
-        cout << "\n                     GROUP 4\n\n		 1. START GAME\n		 2. SETTINGS\n		 3. QUIT\n\n\n\nENTER CHOICE: ";
-    }
-
-    if (screenFlag == 2) { // In Game
+    if (screenFlag == 1) { // In Game
         int numOfCpu = cpuInPlay.size();
         string cpuHand = "";
         switch(numOfCpu){
@@ -289,11 +278,11 @@ void createScreen(player *player, vector<cpuOpponent*> cpuInPlay, vector<string>
         //community cards
         cout << "Pot Total: " << endl; // add pot total variable
         cout << createCardSprite(communityCards);
-        cout << "\n\n\n";
+        cout << "\n";
 
         //player hand
         cout << "Your Hand:" << endl;
-        cout << createCardSprite(player->getHand()) << "\n";
+        cout << createCardSprite(player->getHand());
         //player chips
         cout << "____________________\n";
         cout << "Your Chips: " << createStringFromInt(player->getChipTotal()) << " |\n"; // add player chips total variable
@@ -302,7 +291,7 @@ void createScreen(player *player, vector<cpuOpponent*> cpuInPlay, vector<string>
         cout << "What Will You Do? "; // return string for player input
     }
 
-    if (screenFlag == 3) { // End of Hand / CPU Card Show
+    if (screenFlag == 2) { // End of Hand / CPU Card Show
         int numOfCpu = cpuInPlay.size();
         string cpuHand = "";
         switch(numOfCpu){
@@ -329,13 +318,13 @@ void createScreen(player *player, vector<cpuOpponent*> cpuInPlay, vector<string>
         cout << "\n";
 
         //community cards
-        cout << "Pot Total: " << endl; // add pot total variable
+        cout << "Pot Total: "; // add pot total variable
         cout << createCardSprite(communityCards);
-        cout << "\n\n\n";
+        cout << "\n";
 
         //player hand
-        cout << "Your Hand:" << endl;
-        cout << createCardSprite(player->getHand()) << "\n";
+        cout << "Your Hand:";
+        cout << createCardSprite(player->getHand());
         //player chips
         cout << "____________________\n";
         cout << "Your Chips: " << createStringFromInt(player->getChipTotal()) << " |\n"; // add player chips total variable
@@ -345,22 +334,32 @@ void createScreen(player *player, vector<cpuOpponent*> cpuInPlay, vector<string>
     }
 }
 
-void createSettingsScreen(settingsHolder *settings){
+void createMenuScreen(settingsHolder *settings, int menuFlag){
+    // Title
+    if (menuFlag == 1) { 
+        cout << "\n\n";
+        cout << "				   TEXAS HOLD'EM\n\033[1;33m$$$$$$$\\            $$\\                \033[0mTWO CARD\033[1;33m\n$$  "
+            "__$$\\           $$ |\n$$ |  $$ | $$$$$$\\  $$ |  $$\\  $$$$$$\\   $$$$$$\\ \n$$$$$$$  |$$  __$$\\ $$ | $$  |$$  __$$\\ "
+            "$$  __$$\\ \n$$  ____/ $$ /  $$ |$$$$$$  / $$$$$$$$ |$$ |  \\__|\n$$ |      $$ |  $$ |$$  _$$<  $$   ____|$$ |\n$$ |   "
+            "   \\$$$$$$  |$$ | \\$$\\ \\$$$$$$$\\ $$ |\n\\__|       \\______/ \\__|  \\__| \\_______|\\__|\033[0m" << endl;
+        cout << "\n                     GROUP 4\n\n		 1. START GAME\n		 2. SETTINGS\n		 3. QUIT\n\n\n\nENTER CHOICE: ";
+    }
     // Settings
-    cout << "\n\n\n\nCURRENT SETTINGS:";
-    cout << "\n\n1: Number Of CPU Opponents(Max 3): " << settings->getNumberOfCpu();
-    cout << "\n\n2: Starting Chips: " << settings->getStartingChips();
-    
-    for (int i = 0; i < 21; i++)
-        cout << "\n";
-    
-    cout << "Enter the number of a setting you'd like to modify,\n Or back to return to menu: ";
+    if (menuFlag == 2){
+        cout << "\n\n\n\nCURRENT SETTINGS:";
+        cout << "\n\n1: Number Of CPU Opponents(Max 3): " << settings->getNumberOfCpu();
+        cout << "\n\n2: Starting Chips: " << settings->getStartingChips();
+        
+        for (int i = 0; i < 15; i++)
+            cout << "\n";
+        
+        cout << "Enter the number of a setting you'd like to modify,\nOr back to return to menu: ";
+    }
 }
 
 string getPlayerInput(){
     string playerInput;
     cin >> playerInput;
-    // Based on input call functions or pass input to driver function
 
     return playerInput;
 }
@@ -443,12 +442,8 @@ vector<int> roundOfBetting(player *player1, vector<cpuOpponent*> cpusInPlay, vec
             }
         }
 
-        cout<<"\n Bets: ";
-        for (int x: bets)
-            cout << x << " ";
-
         vector<int> betsNoFolds;
-        for (size_t i = 1; i < bets.size(); i++){
+        for (size_t i = 0; i < bets.size(); i++){
             if(bets[i] >= 0) {
                 betsNoFolds.push_back(bets[i]);
             }
@@ -461,53 +456,26 @@ vector<int> roundOfBetting(player *player1, vector<cpuOpponent*> cpusInPlay, vec
     return bets;
 }
 
-int runHand(){
-    srand((unsigned) time(NULL));
-
+int runHand(settingsHolder *settings, player *p1Ptr, vector<cpuOpponent*> cpuInPlay){
     deckOfCards deck1;
     deck1.populateDeck();
-    
-    settingsHolder s1;
-    settingsHolder* settings = &s1;
-
-    player p1;
-    player* p1Ptr = &p1;
-
-    // Settings Variables
-    int numOfCpu = settings->getNumberOfCpu(); 
-    int startingChips = settings->getStartingChips(); 
 
     vector<string> communityCards = {};
-
-    // create vector holding all CPU in play, update chips
-    vector<cpuOpponent*> cpuInPlay = {};
-    cpuInPlay.resize(numOfCpu);
-
-    for (int i = 0; i < numOfCpu; i++){
-        cpuInPlay[i] = new cpuOpponent();
-        cpuInPlay[i]->updateChipTotal(startingChips);
-    }
-    p1.updateChipTotal(startingChips);
     
     // create a vector of vectors of strings containing hands
-    vector<vector<string>> hands(numOfCpu + 1);
-
-    // tracker for blinds
-    int blindCounter = 1;
-    int* blindCounterPtr = &blindCounter;
+    vector<vector<string>> hands(cpuInPlay.size() + 1);
 
     // deal cards    
     for (int i = 0; i < 2; i++){
         hands[0].push_back(deck1.drawCard());
         
-        for (int j = 0; j < numOfCpu; j++){
+        for (int j = 0; j < cpuInPlay.size(); j++){
             hands[j+1].push_back(deck1.drawCard());
         }
     }
-
-    p1.setHand(hands[0]);
+    p1Ptr->setHand(hands[0]);
     
-    for (int i = 0; i < numOfCpu; i++)
+    for (int i = 0; i < cpuInPlay.size(); i++)
         cpuInPlay[i]->setHand(hands[i+1]);
     
     vector<int> bets = {0};
@@ -523,7 +491,7 @@ int runHand(){
     bets = roundOfBetting(p1Ptr, cpuInPlay, bets, communityCards);
     bool roundOver = false;
 
-    if (count_if(bets.begin(), bets.end(), [](int bet) { return bet < 0; }) >= numOfCpu){
+    if (count_if(bets.begin(), bets.end(), [](int bet) { return bet < 0; }) >= cpuInPlay.size()){
         roundOver = true;
     } else if (!roundOver){
         communityCards.push_back(deck1.drawCard());
@@ -532,7 +500,7 @@ int runHand(){
         bets = roundOfBetting(p1Ptr, cpuInPlay, bets, communityCards);
     }
 
-    if (count_if(bets.begin(), bets.end(), [](int bet) { return bet < 0; }) >= numOfCpu){
+    if (count_if(bets.begin(), bets.end(), [](int bet) { return bet < 0; }) >= cpuInPlay.size()){
         roundOver = true;
     } else if (!roundOver){
         communityCards.push_back(deck1.drawCard());
@@ -547,7 +515,7 @@ int runHand(){
     // Rank player's hand
     vector<string> playerHand;
     
-    playerHand = p1.getHand();
+    playerHand = p1Ptr->getHand();
     playerHand.insert(playerHand.end(), communityCards.begin(), communityCards.end());
     
     handRanks["player"] = (bets[0] >= 0) ? rankHand(playerHand) : 0; // if player folded, rank 0
@@ -579,7 +547,9 @@ int runHand(){
     // Update chip totals
     vector<int> betsNoFolds;
     for (size_t i = 0; i < bets.size(); i++){
-        if(bets[i] >= 0) {
+        if (bets[i] != -1 && bets[i] < 0){
+            betsNoFolds.push_back(bets[i] * - 1);
+        } else if (bets[i] > 0) {
             betsNoFolds.push_back(bets[i]);
         }
     } 
@@ -591,8 +561,7 @@ int runHand(){
     }    
     if (winner == 0) {
         p1Ptr->updateChipTotal(p1Ptr->getChipTotal() + total);
-    }
-    else{
+    } else {
         cpuInPlay[winner - 1]->updateChipTotal(cpuInPlay[winner - 1]->getChipTotal() + total);
     }
 
@@ -601,13 +570,96 @@ int runHand(){
     for (auto i : cpuInPlay)
         cout << "\n" << i->getChipTotal();
 
+
+    return 0;
+}
+
+int runGame(){
+    srand((unsigned) time(NULL));
+
+    settingsHolder s1;
+    settingsHolder* settings = &s1;
+
+    clearScreen(40);
+    createMenuScreen(settings, 1);
+    string input;
+    while (true) {
+        input = getPlayerInput();
+        if (input == "1"){
+            player p1;
+            player* player1 = &p1;
+
+            // Settings Variables
+            int numOfCpu = settings->getNumberOfCpu(); 
+            int startingChips = settings->getStartingChips(); 
+
+            // create vector holding all CPU in play, update chips
+            vector<cpuOpponent*> cpuInPlay = {};
+            cpuInPlay.resize(numOfCpu);
+
+            for (int i = 0; i < numOfCpu; i++){
+                cpuInPlay[i] = new cpuOpponent();
+                cpuInPlay[i]->updateChipTotal(startingChips);
+            }
+            p1.updateChipTotal(startingChips);
+
+            // tracker for blinds
+            int blindCounter = 1;
+            int* blindCounterPtr = &blindCounter;
+            
+            while (player1->getChipTotal() > 0 && cpuInPlay.size() != 0){
+                for (int i = 0; i < cpuInPlay.size(); i++){
+                    if (cpuInPlay[i]->getChipTotal() == 0){
+                        cpuInPlay.erase(cpuInPlay.begin() + i);
+                    }
+                }
+
+                runHand(settings, player1, cpuInPlay);    
+            }
+            
+        } else if (input == "2"){
+            //settings
+            clearScreen(40);
+            createMenuScreen(settings, 2);
+
+            while (input != "back"){
+                input = getPlayerInput();
+
+            }
+        }
+        
+        cout << "Unrecognized Input";
+    }
+
+    player p1;
+    player* player1 = &p1;
+
+    // Settings Variables
+    int numOfCpu = settings->getNumberOfCpu(); 
+    int startingChips = settings->getStartingChips(); 
+
+    // create vector holding all CPU in play, update chips
+    vector<cpuOpponent*> cpuInPlay = {};
+    cpuInPlay.resize(numOfCpu);
+
+    for (int i = 0; i < numOfCpu; i++){
+        cpuInPlay[i] = new cpuOpponent();
+        cpuInPlay[i]->updateChipTotal(startingChips);
+    }
+    p1.updateChipTotal(startingChips);
+
+    // tracker for blinds
+    int blindCounter = 1;
+    int* blindCounterPtr = &blindCounter;
+
+    runHand(settings, player1, cpuInPlay);
+
     // clean up memory, this should only be done upon game close
     for (auto& cpu : cpuInPlay) {
         delete cpu;
     }
-    return 0;
 }
 
 int main(){
-    runHand();
+    runGame();
 }
