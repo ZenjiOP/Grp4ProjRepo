@@ -9,22 +9,20 @@ using namespace std;
 //Flush - remove card values, check if 5 suits are the same.
 //Takes a vector<string> of community cards + one player hand and returns true if a straight is found.
 bool isFlush(vector<string> hand){
-    // reverse value and suit
-    string tempHandArr[7];
-    for (int i = 0; i < hand.size(); i++){
-        tempHandArr[i] = hand[i][1];
-    }
-    // sort
-    sort(begin(tempHandArr), end(tempHandArr));
+    vector<char> suits;
+    for (const auto& card: hand)
+        suits.push_back(card[1]);
 
-    // check
+    sort(suits.begin(), suits.end());
+
     int flushCount = 0;
-    for (int i = 0; i <=5; i++){
-        if (tempHandArr[i] == tempHandArr[i+1]){
+    for (size_t i = 0; i < suits.size() - 1; ++i) {
+        if (suits[i] == suits[i + 1]) {
             flushCount++;
-            if (flushCount == 4){ return true; }
-        }
-        else {
+            if (flushCount == 4) {
+                return true;
+            }
+        } else {
             flushCount = 0;
         }
     }
