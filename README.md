@@ -2,7 +2,7 @@
 (ex. "g++ Poker.cpp Poker_Logic.cpp Poker_Graphics.cpp Poker_Classes.cpp -o Poker")
 
 
-How to play: (For Final Build)
+How to play:
 - In a game of Texas hold'em, each player is dealt two cards face down (the 'hole cards')
 - Over several betting rounds, five more cards are (eventually) dealt face up in the middle of the table
 - Players can use each round to bet additional chips or fold
