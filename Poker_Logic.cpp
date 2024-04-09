@@ -1,13 +1,15 @@
+#include "Poker_Logic.h"
 #include "vector"
 #include "algorithm"
 #include "string"
 #include "unordered_map"
 
+
 using namespace std;
 
 //Poker Logic, each function takes a vector of Strings in format "SV" (Suit/Value)
 //Flush - remove card values, check if 5 suits are the same.
-//Takes a vector<string> of community cards + one player hand and returns true if a straight is found.
+//Takes a vector<string> of community cards + one player hand and returns true if a flush is found.
 bool isFlush(vector<string> hand){
     vector<char> suits;
     for (const auto& card: hand)
@@ -29,7 +31,7 @@ bool isFlush(vector<string> hand){
     return false;
 }
 
-//Straight - iterate through the hand if (hand[i+1] == hand[i]-1). TODO: Save highest number in straight for tiebreaking.
+//Straight - iterate through the hand if (hand[i+1] == hand[i]-1)
 //Takes a vector<string> of community cards + one player hand and returns true if a straight is found.
 int isStraight(vector<string> hand){
     int tempHandArr[7];
@@ -72,7 +74,7 @@ int isStraight(vector<string> hand){
     return 0;
 }
 
-//Of a Kind - iterate through hand if (hand[i] == hand[i+1]).  Check for 3 and 4 of a Kind.  TODO: Save Pair value for tiebreaking.
+//Of a Kind - iterate through hand if (hand[i] == hand[i+1]).  Check for 3 and 4 of a Kind
 //Takes a vector<string> of community cards + one player hand and returns true if a match is found
 int ofAKind(vector<string> hand){
     // 1 - Pair, 2 - Two Pair, 3 - Three of a Kind, 4 - Four of a Kind
