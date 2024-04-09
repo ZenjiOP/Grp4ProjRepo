@@ -1,4 +1,6 @@
-2 Card Texas Holdem Poker application that runs inside the command prompt/terminal.  Compile and run "Poker.cpp" in the same way as any other C++ application.
+2 Card Texas Holdem Poker application that runs inside the command prompt/terminal.  Compile and run "Poker.cpp", "Poker_Logic.cpp", "Poker_Graphics.cpp", and "Poker_Classes.cpp" in the same way as any other C++ application.
+(ex. "g++ Poker.cpp Poker_Logic.cpp Poker_Graphics.cpp Poker_Classes.cpp -o Poker")
+
 
 How to play: (For Final Build)
 - In a game of Texas hold'em, each player is dealt two cards face down (the 'hole cards')
