@@ -167,8 +167,12 @@ int runHand(settingsHolder *settings, player *p1Ptr, vector<cpuOpponent*> cpuInP
     bets = roundOfBetting(p1Ptr, cpuInPlay, bets, communityCards);
 
     // community cards
-    for (int i = 0; i < 3; i++)
+    for (int i = 0; i < 3; i++){
         communityCards.push_back(deck1.drawCard());
+        clearScreen(40);
+        createScreen(p1Ptr, cpuInPlay, communityCards, 1);
+        std::this_thread::sleep_for(250ms);
+    }
 
     clearScreen(40);
     createScreen(p1Ptr, cpuInPlay, communityCards, 1);
@@ -267,7 +271,8 @@ int runGame(){
         createMenuScreen(settings, 1);
         
         input = getPlayerInput();
-        if (input == "1"|| input == "start" || input == "Start"){ // play game -------------------------------------------
+        vector<string> playGameStrings = {"1", "start", "Start", "play", "Play"};
+        if (find(playGameStrings.begin(), playGameStrings.end(), input) != playGameStrings.end()){ // play game 
             player p1;
             player* player1 = &p1;
 
@@ -370,7 +375,7 @@ int runGame(){
                 }
             }
 
-        } else if (input == "3"){
+        } else if (input == "3" || input == "Quit" || input == "quit"){ // quit
             return 0;
         }
         
