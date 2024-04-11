@@ -116,10 +116,13 @@ vector<int> roundOfBetting(player *player1, vector<cpuOpponent*> cpusInPlay, vec
 
         int pot = 0;
         for (auto bet: bets){
+            if (bet > 0){
+                pot += bet;
+            }
             if (bet != -1 && bet < 0){
                 bet = bet * -1;
+                pot += bet;
             }
-            pot += bet;
         }
         player1->setPotVal(pot); 
         
@@ -135,6 +138,8 @@ int runHand(settingsHolder *settings, player *p1Ptr, vector<cpuOpponent*> cpuInP
     deck1.populateDeck();
 
     vector<string> communityCards = {};
+    
+    p1Ptr->setPotVal(0);
     
     // create a vector of vectors of strings containing hands
     vector<vector<string>> hands(cpuInPlay.size() + 1);
