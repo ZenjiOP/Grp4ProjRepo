@@ -148,7 +148,7 @@ void createScreen(player *player, vector<cpuOpponent*> cpuInPlay, vector<string>
         cout << "\n";
 
         //community cards
-        cout << "Pot Total: "; // add pot total variable
+        cout << "Pot Total: " << player->getPot(); // add pot total variable
         cout << createCardSprite(communityCards);
         cout << "\n";
 
