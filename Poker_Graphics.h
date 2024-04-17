@@ -1,3 +1,4 @@
+// Written by JHoulihan
 #ifndef POKER_GRAPHICS_H_
 #define POKER_GRAPHICS_H_
 
