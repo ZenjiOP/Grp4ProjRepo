@@ -1,3 +1,4 @@
+// Written by JHoulihan
 #ifndef POKER_LOGIC_H_
 #define POKER_LOGIC_H_
 
